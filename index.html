@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <title>超时空排表工具</title>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 引入 Bootstrap -->
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/bootstrap-switch.min.css">
+    <link rel="stylesheet" href="css/jquery.toast.min.css">
+    <link rel="stylesheet" href="css/hyper.min.css">
+</head>
+<body>
+<nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbarSupportedContent">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">小明</a>
+        </div>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="nav navbar-nav">
+                <li><a href="/">首页</a></li>
+                <li><a href="/gallery/">图廊</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">工具 <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="/luke/">卢克排表工具</a></li>
+                        <li><a href="/hyper/">超时空排表工具</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">文章 <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="/luke/tutorial/">卢克排表工具说明</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="row">
+        <div class="page-header">
+            <h2>超时空排表工具
+                <span class="pull-right">
+                    <button type="button" class="btn btn-info btn-sm" id="schedule_history_btn">
+                        <span class="glyphicon glyphicon-time"></span>
+                    </button>
+                    <button title="保存排表" type="button" class="btn btn-info btn-sm" onclick="saveSchedule();">
+                        <span class="glyphicon glyphicon-floppy-save"></span>
+                    </button>
+                    <button title="导出截图" type="button" class="btn btn-info btn-sm" id="export_btn">
+                        <span class="glyphicon glyphicon-export"></span>
+                    </button>
+                    <input type="checkbox" id="edit_lock" autocomplete="off">
+                </span>
+            </h2>
+        </div>
+        <div class="col-md-12" id="schedule">
+            <h3 class="text-center"></h3>
+            <input title="在排表区查找对象" type="search" class="pull-right" id="schedule_search" autocomplete="off">
+            <table class="table table-bordered text-center">
+                <thead>
+                <tr>
+                    <th class="bg-success">20:00
+                        <span class="pull-right" style="display: none;">
+                            <button title="在该时间段末尾增加一个团" type="button" class="btn btn-info btn-xxs" name="row-add">
+                                <span class="glyphicon glyphicon-plus"></span>
+                            </button>
+                            <button title="将该时间段末尾的团删去" type="button" class="btn btn-info btn-xxs" name="row-delete">
+                                <span class="glyphicon glyphicon-minus"></span>
+                            </button>
+                        </span>
+                    </th>
+                    <th class="text-center" colspan="4">光</th>
+                    <th class="text-center" colspan="4">暗</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <th scope="row">A队</th>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                </tbody>
+            </table>
+            <div class="text-center" style="margin-bottom: 15px;display: none;">
+                <button title="末尾增加一个时间段" type="button" class="btn btn-primary btn-sm" name="chart-add">
+                    <span class="glyphicon glyphicon-plus"></span>
+                </button>
+                <button title="删去末尾的时间段" type="button" class="btn btn-primary btn-sm" name="chart-delete">
+                    <span class="glyphicon glyphicon-minus"></span>
+                </button>
+            </div>
+        </div>
+        <div class="col-md-7 draggable" id="staff_list" style="margin-bottom: 100px;">
+            <h3>团员列表
+                <div class="pull-right">
+                    <input title="在团员区查找对象" type="search" id="staff_search" autocomplete="off">
+                    <button title="刷新团员列表" type="button" class="btn btn-refresh btn-sm" onclick="requestStaff(loadCheck);"><span
+                            class="glyphicon glyphicon-refresh"></span>
+                    </button>
+                    <button type="button" data-clicked="0" class="btn btn-success btn-sm" id="staff_list_batch_leave">
+                        批量管理
+                    </button>
+                    <button title="按住拖拽团员区" type="button" class="btn btn-info btn-sm"
+                            id="staff_list_move_handle"><span
+                            class="glyphicon glyphicon-move"></span>
+                    </button>
+                    <div title="点击隐藏/显示对应类型团员" class="btn-group btn-group-sm" data-toggle="buttons" role="group"
+                         id="staff_list_filter">
+                        <label class="btn btn-default active">
+                            <input type="checkbox" name="options" data-filter="1" checked> C
+                        </label>
+                        <label class="btn btn-default active">
+                            <input type="checkbox" name="options" data-filter="2" checked> 辅助
+                        </label>
+                        <label class="btn btn-default active">
+                            <input type="checkbox" name="options" data-filter="3" checked> 奶
+                        </label>
+                        <label class="btn btn-default active">
+                            <input type="checkbox" name="options" data-filter="4" checked> 已排
+                        </label>
+                        <label class="btn btn-default active">
+                            <input type="checkbox" name="options" data-filter="5" checked> 请假
+                        </label>
+                    </div>
+                    <button type="button" class="btn btn-success btn-sm" id="staff_list_add_btn">
+                        <span class="glyphicon glyphicon-plus-sign"></span> 添加
+                    </button>
+                </div>
+            </h3>
+            <!--button 列表-->
+            <div></div>
+        </div>
+        <div class="col-md-5" style="width: 37.3%;margin-left: 4.366667%;margin-bottom: 100px;" id="staff_attr_panel"
+             data-id="-1">
+            <h3>团员属性
+                <div class="pull-right">
+                    <button type="button" class="btn btn-info btn-sm" id="staff_attr_save_btn">
+                        <span class="glyphicon glyphicon-floppy-save"></span> 保存
+                    </button>
+                    <button type="button" class="btn btn-danger btn-sm" id="staff_attr_del_btn">
+                        <span class="glyphicon glyphicon-minus-sign"></span> 删除
+                    </button>
+                </div>
+            </h3>
+            <form class="form-inline section-header">
+                <div class="input-group">
+                    <select id="staff_attr_name_select" class="form-control"></select>
+                    <span class="input-group-btn">
+                        <button title="新增一个团员昵称" class="btn btn-primary" type="button" data-toggle="modal"
+                                data-target="#modal_add_name">+</button>
+                    </span>
+                </div>
+                <div class="input-group">
+                    <span class="input-group-addon">职业</span>
+                    <input title="建议3个字以内的职业简称" id="staff_attr_career_input" autocomplete="off" type="text" class="form-control"
+                           style="width: 80px;">
+                </div>
+                <select id="staff_attr_type_select" class="form-control">
+                    <option value="0">定位</option>
+                    <option value="1">C</option>
+                    <option value="2">辅助</option>
+                    <option value="3">奶</option>
+                </select>
+                <label class="btn btn-default form-control" style="display: inline-flex;">
+                    <input id="staff_attr_absence_check" style="margin-right: 4px;" type="checkbox"> 请假
+                </label>
+            </form>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h5 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion"
+                           href="#collapseOne">
+                            其他属性（可选） <span class="glyphicon glyphicon-triangle-bottom pull-right"></span>
+                        </a>
+                    </h5>
+                </div>
+                <div id="collapseOne" class="panel-collapse collapse">
+                    <div class="panel-body">
+                        <div id="staff_attr_other_attack" class="btn-group radio-btn-group" data-toggle="buttons">
+                            <label class="btn btn-default active">
+                                <input type="radio" name="options"> 物理
+                            </label>
+                            <label class="btn btn-default">
+                                <input type="radio" name="options"> 魔法
+                            </label>
+                        </div>
+                        <div id="staff_attr_other_control" class="btn-group radio-btn-group" data-toggle="buttons">
+                            <label class="btn btn-default active">
+                                <input type="radio" name="options"> 有控
+                            </label>
+                            <label class="btn btn-default">
+                                <input type="radio" name="options"> 无控
+                            </label>
+                        </div>
+                        <div id="staff_attr_other_element" class="btn-group" data-toggle="buttons">
+                            <label class="btn btn-default">
+                                <input type="checkbox" name="options"> 火
+                            </label>
+                            <label class="btn btn-default">
+                                <input type="checkbox" name="options"> 暗
+                            </label>
+                            <label class="btn btn-default">
+                                <input type="checkbox" name="options"> 光
+                            </label>
+                            <label class="btn btn-default">
+                                <input type="checkbox" name="options"> 冰
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--modal-->
+    <div class="modal fade bs-example-modal-sm" id="modal_add_name" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">添加称谓</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="form-control" id="modal_add_name_input" autocomplete="off" placeholder="输入称谓，建议3个字以内">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" onclick="addName();">提交</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+    <div class="modal fade" id="modal_authorize" tabindex="-1" role="dialog" data-backdrop="static"
+         data-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">授权码</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="modal_authorize_input" autocomplete="off" placeholder="请输入您分配的授权码">
+                        <span class="input-group-btn">
+                            <button class="btn btn-success" type="button" onclick="checkAuth();">&#10004;</button>
+                        </span>
+                    </div><!-- /input-group -->
+                    <span id="helpBlock" class="help-block" style="color: #a94442;"></span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-warning pull-left" onclick="experience();">体验（所做修改不会保存）
+                    </button>
+                    <button id="btn_auth_enter" type="button" class="btn btn-primary" onclick="authorize();" disabled>
+                        进入
+                    </button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+    <div class="modal fade" id="modal_img" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">导出截图</h4>
+                </div>
+                <div class="modal-body">
+                    <img id="screen_shot_img" style="width: 100%;height: 100%;"/>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+</div>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" class="line">
+    <line x1="0" y1="0" x2="0" y2="0" style="stroke:#006600;"></line>
+</svg>
+<footer class="container-fluid foot-wrap">
+    <p align="center" style="margin-top: 16px;color:#878B91;">
+        Copyright &copy; 2018 小明. All rights reserved.
+    </p>
+</footer>
+
+
+<!-- 包括所有已编译的插件 -->
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="js/bootstrap-switch.min.js"></script>
+<script src="js/html2canvas.min.js"></script>
+<script src="js/jquery.toast.min.js"></script>
+<!--<script src="dist/js/hyper.min.js"></script>-->
+<script src="js/hyper.js"></script>
+</body>
+</html>
