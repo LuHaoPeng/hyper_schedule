@@ -19,10 +19,11 @@ $(document).ready(function () {
         }
     });
 
-    // init switch
+    // init switch edit_lock
     $("input#edit_lock").bootstrapSwitch({
         'state': false,
         'size': 'small',
+        'labelText':'表',
         'onText': '\u2714',
         'offText': '\u2718',
         'onSwitchChange': function () {
@@ -34,6 +35,24 @@ $(document).ready(function () {
             } else if (state === false) {
                 $chart.find('table thead th').children('span').hide();
                 $chart.children('div').hide();
+            }
+        }
+    });
+
+    // init switch element_lock
+    $("input#element_lock").bootstrapSwitch({
+        'state': false,
+        'size': 'small',
+        'labelText':'属',
+        'onText': '\u2714',
+        'offText': '\u2718',
+        'onSwitchChange': function () {
+            let state = $("input#element_lock").bootstrapSwitch('state');
+            let $chart = $('div#schedule');
+            if (state === true) {
+                $chart.addClass("element-on");
+            } else if (state === false) {
+                $chart.removeClass("element-on");
             }
         }
     });
@@ -52,8 +71,7 @@ function init(callback) {
     requestStaff(function () {
         requestSchedule(null, callback);
     });
-    // TODO remove comment mark
-    // requestScheduleList();
+    requestScheduleList();
 }
 
 /**
@@ -61,7 +79,7 @@ function init(callback) {
  * @param callback called on completion
  */
 function requestStaff(callback) {
-    $.get("data/tempStaff.txt", function (data, status) {
+    $.post("php/StaffList.php", function (data, status) {
         if (status === "success") {
             let json = JSON.parse(data);
             if (json.code === 0) {
@@ -107,7 +125,7 @@ function requestStaff(callback) {
  * @param callback called on completion
  */
 function requestSchedule(id, callback) {
-    $.get("data/tempSche.txt", {
+    $.post("php/ScheduleSL.php", {
         "method": "load",
         "id": id
     }, function (data, status) {
@@ -117,6 +135,8 @@ function requestSchedule(id, callback) {
                 // construct chart
                 if (json.data) {
                     constructChart(json.data.datatime, json.data.content);
+                    // paint element
+                    translateElement(true);
                     // load check
                     loadCheck();
                 }
@@ -250,7 +270,7 @@ function constructChart(time, arrayParam) {
                                 // staff是一个团员id，对应td
                                 let staff = staticLocalStaffList[staffId - 1];
                                 if (parseInt(staff.id) === staffId) {
-                                    tableHtml += '<td data-id="' + staff.id + '" data-name="' + staff.name + '">' + staff.name + staff.career + '</td>';
+                                    tableHtml += '<td data-id="' + staff.id + '" data-name="' + staff.name + '" data-element="' + staff.element + '">' + staff.name + staff.career + '</td>';
                                 } else {
                                     // Error 60x:载入顺序与列表顺序不一致，需要手动查找定位（一般不会出现）
                                     alert("错误代码604，请告知小明");
@@ -566,7 +586,11 @@ function readStaffAttributes(e) {
         // other attributes
         $("div#staff_attr_other_attack").children("label").removeClass("active").eq(staff.attack - 1).addClass("active");
         $("div#staff_attr_other_control").children("label").removeClass("active").eq(staff.control - 1).addClass("active");
-        $("div#staff_attr_other_element").children("label").removeClass("active").eq(staff.element - 1).addClass("active");
+        $("div#staff_attr_other_element").children("label").removeClass("active").each(function () {
+            if ((8 >> $(this).index() & staff.element) > 0) {
+                $(this).addClass("active");
+            }
+        })
     } else {
         // Error 60x:载入顺序与列表顺序不一致，需要手动查找定位（一般不会出现）
         alert("错误代码600，请告知小明");
@@ -583,7 +607,6 @@ function resetStaffAttributesPanel() {
     $("input#staff_attr_absence_check").prop("checked", false);
     $("div#staff_attr_other_attack").children("label").removeClass("active").eq(0).addClass("active");
     $("div#staff_attr_other_control").children("label").removeClass("active").eq(0).addClass("active");
-    $("div#staff_attr_other_element").children("label").removeClass("active").eq(0).addClass("active");
 }
 
 /**
@@ -602,6 +625,7 @@ function loadStaffList(staffList) {
         let elementNode = document.createElement("button");
         elementNode.setAttribute("type", "button");
         elementNode.setAttribute("data-id", item.id);
+        elementNode.setAttribute("data-element", item.element);
         elementNode.className = "btn btn-default";
         elementNode.innerHTML = item.name + item.career;
         if (item.type === '1') {
@@ -649,7 +673,7 @@ function loadCheck() {
         $target.each(function () {
             if ($(this).text() === text) {
                 if ($(this).hasClass("career-absence")) {
-                    $current.removeAttr("data-id").removeAttr("data-name").text("");
+                    $current.removeAttr("data-id").removeAttr("data-name").attr("class", "").text("");
                 } else if (!$(this).hasClass("in-schedule")) {
                     $(this).addClass("in-schedule");
                 }
@@ -787,6 +811,46 @@ function batchLeave(type) {
 }
 
 /**
+ * calculate staff's element
+ * @returns {number} element number, range 0 ~ 15
+ */
+function calculateElement() {
+    let element = 0;
+    $("div#staff_attr_other_element").find('label.active').each(function () {
+        element += 8 >> $(this).index();
+    });
+    return element;
+}
+
+/**
+ * translate element into span dots
+ * @param scale boolean. true:wholly, false:partly. if false, a root object is needed
+ */
+function translateElement(scale) {
+    if (scale) {
+        $("div#schedule").find("tr td").each(function () {
+            translateElement(false, $(this));
+        });
+    } else {
+        if (typeof arguments[1] === "object") {
+            let span = "";
+            let $obj = arguments[1];
+            let element = $obj.attr("data-element");
+            if (element) {
+                span += (element & 8) > 0 ? '<span class="element element-flame"></span>' : "";
+                span += (element & 4) > 0 ? '<span class="element element-dark"></span>' : "";
+                span += (element & 2) > 0 ? '<span class="element element-light"></span>' : "";
+                span += (element & 1) > 0 ? '<span class="element element-ice"></span>' : "";
+                $obj.append(span);
+            }
+        } else {
+            // Error 80x:参数传递错误
+            alert("错误代码801，请告知小明");
+        }
+    }
+}
+
+/**
  * save the attribute changes to local
  * and refresh the corresponding button
  */
@@ -809,7 +873,7 @@ function saveStaff() {
         "absence": $("input#staff_attr_absence_check").prop('checked'),
         "attack": $("div#staff_attr_other_attack").find('label.active').index() + 1,
         "control": $("div#staff_attr_other_control").find('label.active').index() + 1,
-        "element": $("div#staff_attr_other_element").find('label.active').index() + 1
+        "element": calculateElement()
     };
 
     // submit changes
@@ -997,7 +1061,7 @@ function undoDeleteStaff(idDeleted) {
 }
 
 /**
- * premium auth. save schedule changes to local chart.txt file
+ * premium auth. save schedule changes server
  */
 function saveSchedule() {
     // save schedule
@@ -1177,18 +1241,25 @@ function bindDrawLine() {
                 let staff_id = $td.attr("data-id");
                 let staff_name = $td.attr("data-name");
                 let staff_text = $td.text();
+                let staff_element = $td.attr("data-element");
                 let $target = $(this);
                 let this_id = $target.attr("data-id");
                 let this_name = $target.attr("data-name");
                 let this_text = $target.text();
+                let this_element = $target.attr("data-element");
                 $td.attr("data-id", !this_id ? "" : this_id);
                 $td.attr("data-name", !this_name ? "" : this_name);
                 $td.text(!this_text ? "" : this_text);
+                $td.attr("data-element", !this_element ? "" : this_element);
                 $target.attr("data-id", !staff_id ? "" : staff_id);
                 $target.attr("data-name", !staff_name ? "" : staff_name);
                 $target.text(!staff_text ? "" : staff_text);
+                $target.attr("data-element", !staff_element ? "" : staff_element);
                 // reset
                 isExchange = false;
+                // draw element dots
+                translateElement(false, $td);
+                translateElement(false, $target);
                 // mark duplication
                 markDuplicate(false, $td);
                 markDuplicate(false, $target);
@@ -1202,11 +1273,12 @@ function bindDrawLine() {
                 if (staff.name !== "空") {
                     let $contain = $("div#schedule").find("tbody tr td").filter('[data-id="' + staffId + '"]');
                     $contain.each(function () {
-                        $(this).removeAttr("data-id").removeAttr("data-name").text("");
+                        $(this).removeAttr("data-id").removeAttr("data-name").removeAttr("data-element").text("");
                     });
                 }
                 // fill in the cell
-                $(this).attr('data-id', staffId).attr('data-name', staff.name).text(staff.name + staff.career);
+                $(this).attr('data-id', staffId).attr('data-name', staff.name).attr('data-element', staff.element).text(staff.name + staff.career);
+                translateElement(false, $(this));
                 // set staff to '.in-schedule'
                 let $staff_in = $staff_list.find('button[data-id="' + staffId + '"]');
                 if (!$staff_in.hasClass('in-schedule') && staff.name !== "空") {
@@ -1236,7 +1308,7 @@ function bindDrawLine() {
 
 /**
  * check duplication in schedule
- * @param scale boolean. true:wholly, false:partly. if false, a root object is needed
+ * @param scale boolean. true:wholly, false:partly. if false, a root object is required
  */
 function markDuplicate(scale) {
     if (scale) {

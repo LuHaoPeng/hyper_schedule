@@ -12,6 +12,7 @@ table tbody tr td {
     -moz-user-select: none;
     user-select: none;
 
+    position: relative;
     cursor: default;
 }
 
@@ -187,4 +188,40 @@ a[disabled] {
 
 a.schedule-history {
     cursor: pointer;
+}
+
+/*element color*/
+.element-on .element {
+    visibility: visible;
+}
+
+.element {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    visibility: hidden;
+}
+
+.element.element-flame {
+    background-color: orangered;
+    top: 3px;
+    left: 3px;
+}
+
+.element.element-dark {
+    background-color: mediumpurple;
+    top: 3px;
+    right: 3px;
+}
+
+.element.element-light {
+    background-color: gold;
+    bottom: 3px;
+    left: 3px;
+}
+
+.element.element-ice {
+    background-color: deepskyblue;
+    bottom: 3px;
+    right: 3px;
 }
