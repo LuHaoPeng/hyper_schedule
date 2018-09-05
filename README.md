@@ -1,5 +1,5 @@
 # hyper_schedule
-当前版本 0.2
+当前版本 0.2.1
 
 本项目为[卢克排表工具](https://github.com/LuHaoPeng/luke_schedule)的分支。
 
@@ -57,5 +57,6 @@
 
 ## 更新历史
 
+- 0.2.1(*2018-09-05*): 点击查找按钮会自动选中当前输入文字，方便删除；可远程设置每团间隔（尚未实装到页面）。
 - 0.2(*2018-07-19*): 增加团员属性攻击标记，以及全局开关。
 - 0.1(*2018-06-19*): 从[luke_schedule](https://github.com/LuHaoPeng/luke_schedule)项目分支而来，发布。

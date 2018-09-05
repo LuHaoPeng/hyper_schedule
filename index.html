@@ -51,16 +51,16 @@
         <div class="page-header">
             <h2>超时空排表工具
                 <span class="pull-right">
-                    <button type="button" class="btn btn-info btn-sm" id="schedule_history_btn">
+                    <button type="button" class="btn btn-info btn-sm hidden-xs hidden-sm" id="schedule_history_btn">
                         <span class="glyphicon glyphicon-time"></span>
                     </button>
-                    <button title="保存排表" type="button" class="btn btn-info btn-sm" onclick="saveSchedule();">
+                    <button title="保存排表" type="button" class="btn btn-info btn-sm hidden-xs hidden-sm" onclick="saveSchedule();">
                         <span class="glyphicon glyphicon-floppy-save"></span>
                     </button>
-                    <button title="导出截图" type="button" class="btn btn-info btn-sm" id="export_btn">
+                    <button title="导出截图" type="button" class="btn btn-info btn-sm hidden-xs hidden-sm" id="export_btn">
                         <span class="glyphicon glyphicon-export"></span>
                     </button>
-                    <input type="checkbox" id="edit_lock" autocomplete="off">
+                    <input class="hidden-xs hidden-sm" type="checkbox" id="edit_lock" autocomplete="off">
                     <input type="checkbox" id="element_lock" autocomplete="off">
                 </span>
             </h2>
@@ -303,6 +303,7 @@
 <script src="js/bootstrap-switch.min.js"></script>
 <script src="js/html2canvas.min.js"></script>
 <script src="js/jquery.toast.min.js"></script>
+<script src="dist/js/common.min.js"></script>
 <script src="dist/js/hyper.min.js"></script>
 </body>
 </html>
